@@ -133,7 +133,7 @@ output <- paste0(fig_dir, "property_pca_outlier.tiff")
 #ggsave(output, plot, width = 6, height = 6, dpi = 300)
 
 #-------------------------------#
-#         remove outlie         #
+#         remove outlier         #
 #-------------------------------#
 
 #detect outliers, remove (top 1%) and repeat
