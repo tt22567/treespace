@@ -40,6 +40,7 @@ fig_dir <- gsub( pattern = "Scripts",
                  replacement = "Figs/why1000/",
                  x = full_path_to_file )
 
+
 #Rdata directory
 Rdata_dir <- gsub( pattern = "Scripts",
                    replacement = "Rdata/",
@@ -73,7 +74,7 @@ prop_positive_desc <- c("NS","AL","PPIS","NVS","LHF","ABSS","TTL","Treeness","Tr
 prop_negative_asc <- c("PG","RCV","LHU","ER","ALBS","Saturation") 
 
 # Define tree numbers to plot in each plot
-max_values <- c(2000, 1800, 1600, 1400, 1200, 1000, 800, 600, 400, 200)
+max_values <- c(1800, 1600, 1400, 1200, 1000, 800, 600, 400, 200)
 
 # Loop through each target column and each max value
 for (target_col in prop_positive_desc) {
@@ -114,10 +115,11 @@ for (target_col in prop_positive_desc) {
       scale_color_manual(values = "blue", labels = max_label) +
       labs(color = target_col) +
       theme(legend.position = "top",
-            plot.title = element_text(size = 10),
-            axis.text = element_text(size = 10),  # Preserve axis tick labels for small plots
-            legend.text = element_text(size = 10),  # Adjust the font size of the legend text
-            axis.title = element_text(size = 10)) +   # Set axis title size
+            plot.title = element_text(size = 15),
+            axis.text = element_text(size = 15),  # Preserve axis tick labels for small plots
+            legend.text = element_text(size = 15),  # Adjust the font size of the legend text
+            legend.title = element_text(size = 15),  # Adjust the font size of the legend title
+            axis.title = element_text(size = 15)) +   # Set axis title size
       xlab("PC1 (73.7%)") +
       ylab("PC2 (3.2%)")   # Set axis labels
     
@@ -129,11 +131,11 @@ for (target_col in prop_positive_desc) {
   }
   
   # Combine all small plots into one large plot
-  combined_plot <- plot_grid(plotlist = plots_list, ncol = 5, align = "h")
+  combined_plot <- plot_grid(plotlist = plots_list, ncol = 3, align = "h")
   
   # Save the combined large plot
   output = paste0(fig_dir, target_col, "_why1000.tiff")
-  ggsave(plot = combined_plot, filename = output, width = 30, height = 6, units = "in", dpi = 300)
+  ggsave(plot = combined_plot, filename = output, width = 18, height = 9, units = "in", dpi = 300)
 }
 
 
@@ -176,10 +178,11 @@ for (target_col in prop_negative_asc) {
       scale_color_manual(values = "blue", labels = max_label) +
       labs(color = target_col) +
       theme(legend.position = "top",
-            plot.title = element_text(size = 10),
-            axis.text = element_text(size = 10),  # Preserve axis tick labels for small plots
-            legend.text = element_text(size = 10),  # Adjust the font size of the legend text
-            axis.title = element_text(size = 10)) +   # Set axis title size
+            plot.title = element_text(size = 15),
+            axis.text = element_text(size = 15),  # Preserve axis tick labels for small plots
+            legend.text = element_text(size = 15),  # Adjust the font size of the legend text
+            legend.title = element_text(size = 15),  # Adjust the font size of the legend title
+            axis.title = element_text(size = 15)) +   # Set axis title size
       xlab("PC1 (73.7%)") +
       ylab("PC2 (3.2%)")   # Set axis labels
     
@@ -191,10 +194,9 @@ for (target_col in prop_negative_asc) {
   }
   
   # Combine all small plots into one large plot
-  combined_plot <- plot_grid(plotlist = plots_list, ncol = 5, align = "h")
+  combined_plot <- plot_grid(plotlist = plots_list, ncol = 3, align = "h")
   
   # Save the combined large plot
   output = paste0(fig_dir, target_col, "_why1000.tiff")
-  ggsave(plot = combined_plot, filename = output, width = 30, height = 6, units = "in", dpi = 300)
+  ggsave(plot = combined_plot, filename = output, width = 18, height = 9, units = "in", dpi = 300)
 }
-
