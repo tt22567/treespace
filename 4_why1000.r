@@ -40,6 +40,11 @@ fig_dir <- gsub( pattern = "Scripts",
                  replacement = "Figs/why1000/",
                  x = full_path_to_file )
 
+#Rdata directory
+Rdata_dir <- gsub( pattern = "Scripts",
+                   replacement = "Rdata/",
+                   x = full_path_to_file )
+
 #-------#
 # TASKS #
 #-------#
