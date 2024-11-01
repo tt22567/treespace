@@ -103,7 +103,10 @@ write.csv(res,file = output)
 
 res <- read.csv(paste0(csv_dir, "res_tree_distance_BMGE_Normolise_2063.csv"))
 
-#take care this step, which might remove unnecessary rows and cols
+#Remove the same species with NA from both columns and rows.
+#Be cautious with this step, as it may remove rows and columns unnecessarily
+#For instance, if multiple NAs are present for a single species, directly removing all rows or columns containing NAs could lead to data loss.
+#Therefore, it might be easier to remove them manually.
 #check whether there are absent value and infinite value
 any(is.na(res))
 any(is.infinite(res))
