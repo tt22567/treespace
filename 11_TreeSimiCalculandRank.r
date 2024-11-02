@@ -124,8 +124,8 @@ plot <- ggplot( data = output, aes(x = criteria_tree_files, y = normalized_quart
   theme_minimal() +
   theme(panel.grid.major = element_line(color = "gray", linetype = "dashed"),
         #panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),  # 不显示次要网格线
-        panel.border = element_rect(color = "black", fill = NA, size = 1.5),  # 调整边框的颜色和大小
+        panel.grid.minor = element_blank(),  
+        panel.border = element_rect(color = "black", fill = NA, size = 1.5),  
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = 7),
         axis.text.y = element_text(size = 7),
         plot.title = element_text(hjust = 0.5, size = 10),
