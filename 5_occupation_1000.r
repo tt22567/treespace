@@ -54,7 +54,7 @@ setwd( wd )
 #-------#
 
 #---------------------------------------------------#
-#    choose central 1000 trees in multidimension    #
+#           choose central 1000 trees               #
 #             use distance matrix                   #
 #---------------------------------------------------#
 
@@ -79,28 +79,57 @@ print(name_1000)
 output <- paste0(wd,"/closest1000.csv")
 #write(name_1000, file = output)  
 
+#---------------------------------------------------#
+#          choose periphery 1000 trees              #
+#             use distance matrix                   #
+#---------------------------------------------------#
+
+#read the distance matrix
+input <- paste0(wd, "/res_tree_distance_BMGE_Normalise_noNA_2041.csv")
+dist_mat <- read.csv( file = input, row.names = 1)
+
+# Calculate the sum of each row
+row_sums <- rowSums(dist_mat)
+
+# Sort the row sums in descending order
+sorted_row_sums_de <- sort(row_sums, decreasing = TRUE)
+
+# Extract the top 1000 rows
+top_1000_row_sums_de <- sorted_row_sums[1:1000]
+
+# Print the row names of the top 1000 rows
+name_1000_de <- names(top_1000_row_sums)
+print(name_1000_de)
+
+# Save the names of the 1000 closest points 
+output <- paste0(wd,"/periphery1000.csv")
+#write(name_1000, file = output)  
+
 #-------------------------------------------#
 # plot closest 1000 genes on the tree space #
 #-------------------------------------------#
 
 #load distance matrix
-input <- paste0(Rdata_dir,'1_TreeDistance.Rdata')
+input <- paste0(Rdata_dir,'1_TreeDistance_NMDS.Rdata')
 load(input)
+
+#load nmds analysis result
+nmds2
 
 centre_1000 <- name_1000
 
-center_indices <- which(rownames(pca_res$x) %in% centre_1000)
+center_indices <- which(rownames(nmds2$points) %in% centre_1000)
 
 # Create a dataframe for the highlighted points
 highlighted_df <- data.frame(
-  PC1 = pca_res$x[center_indices, 1],
-  PC2 = pca_res$x[center_indices, 2],
+  MDS1 = nmds2$points[center_indices, 1],
+  MDS2 = nmds2$points[center_indices, 2],
   label = "Center_1000"
 )
 
-plot <- ggplot(data = pca_res$x, aes(PC1, PC2)) +
+plot <- ggplot(data = nmds2$points, aes(MDS1, MDS2)) +
   geom_point(size = 0.5, alpha = 1.0) +
-  geom_point(data = highlighted_df, aes(PC1, PC2, color = label), size = 0.5, show.legend = TRUE) +
+  geom_point(data = highlighted_df, aes(MDS1, MDS2, color = label), size = 0.5, show.legend = TRUE) +
   # Manually specify the colors and labels for the legend in a plot
   scale_color_manual(values = "#AD0B08", labels = c("Center_1000")) +
   labs(color = "") +
@@ -113,12 +142,12 @@ plot <- ggplot(data = pca_res$x, aes(PC1, PC2)) +
     legend.text = element_text(size = 10),  # Adjust the font size of the legend text
     axis.title = element_text(size = 10)   # Set axis title size
   ) +
-  xlab("PC1 (73.7%)") +
-  ylab("PC2 (3.2%)")   # Set axis labels
+  xlab("NMDS1") +
+  ylab("NMDS2")   # Set axis labels
 
 # Save
 output <- paste0(fig_dir, "closest1000.tiff")
-ggsave(plot, filename = output, width = 6, height = 3, units = "in", dpi = 300)
+ggsave(plot, filename = output, width = 5, height = 5, units = "in", dpi = 300)
 
 
 #------------------------------------------------#
@@ -127,7 +156,7 @@ ggsave(plot, filename = output, width = 6, height = 3, units = "in", dpi = 300)
 
 centre_1000 <- name_1000
 
-center_indices <- which(rownames(pca_res$x) %in% centre_1000)
+center_indices <- which(rownames(nmds2$points) %in% centre_1000)
 
 # Read the CSV file containing the gene names to be mapped
 properties <- read.csv("properties_final_2041.csv", header = TRUE)
@@ -160,13 +189,13 @@ for (column in prop_positive_desc) {
   #write.csv(top_1000_trees, file = output)
   
   # Find the positions of the current group of genes in the PCA results
-  top1000_indices <- which(rownames(pca_res$x) %in% top_1000_trees)
+  top1000_indices <- which(rownames(nmds2$points) %in% top_1000_trees)
 
   # Find the shared genes between the centre 1000 genes and the top 1000 genes for the current column
   shared_trees <- centre_1000[centre_1000 %in% top_1000_trees]
   
   # Find the positions of the shared genes in the PCA results
-  sharetree_indices <- which(rownames(pca_res$x) %in% shared_trees)
+  sharetree_indices <- which(rownames(nmds2$points) %in% shared_trees)
   
   # Calculate the number of shared genes
   occup <- length(shared_trees)
@@ -179,11 +208,11 @@ for (column in prop_positive_desc) {
   colors <- c("gold", "blue", "#FF0000")  # Colors for the plot
   
   # Create the plot and save it
-  current_plot <- ggplot(data = pca_res$x, aes(PC1, PC2)) +
-    geom_point(color = 'black', size = 1.0, alpha = 1.0) +
-    geom_point(data = pca_res$x[center_indices,], aes(PC1, PC2, color = labels[1]), size = 1.0, show.legend = TRUE) +
-    geom_point(data = pca_res$x[top1000_indices,], aes(PC1, PC2, color = labels[2]), size = 1.0, show.legend = TRUE) +
-    geom_point(data = pca_res$x[sharetree_indices,], aes(PC1, PC2, color = labels[3]), size = 1.0, show.legend = TRUE) +
+  current_plot <- ggplot(data = nmds2$points, aes(MDS1, MDS2)) +
+    geom_point(color = 'black', size = 1.5, alpha = 1.0) +
+    geom_point(data = nmds2$points[center_indices,], aes(MDS1, MDS2, color = labels[1]), size = 1.0, show.legend = TRUE) +
+    geom_point(data = nmds2$points[top1000_indices,], aes(MDS1, MDS2, color = labels[2]), size = 1.0, show.legend = TRUE) +
+    geom_point(data = nmds2$points[sharetree_indices,], aes(MDS1, MDS2, color = labels[3]), size = 1.0, show.legend = TRUE) +
     scale_color_manual(labels = labels, values = colors) +
     labs(color = " ") +  # Set the title of the legend
     theme(legend.position = "top",
@@ -194,8 +223,8 @@ for (column in prop_positive_desc) {
           axis.text = element_text(size = 18),  # Preserve the axis tick labels for small plots
           legend.text = element_text(size = 18),  # Adjust the font size of the legend text
           axis.title = element_text(size = 18)) + # Set the axis title size
-    xlab("PC1 (73.7%)") +
-    ylab("PC2 (3.2%)")  # Set the axis labels
+    xlab("NMDS1") +
+    ylab("NMDS2")  # Set the axis labels
   
   # Add the plot to the list
   plot_list[[i]] <- current_plot
@@ -219,13 +248,13 @@ for (column in prop_negative_asc) {
   #write.csv(top_1000_trees, file = output)
   
   # Find the positions of the current group of genes in the PCA results
-  gene_indices_group <- which(rownames(pca_res$x) %in% top_1000_trees)
+  gene_indices_group <- which(rownames(nmds2$points) %in% top_1000_trees)
   
   # Find the shared genes between the centre 1000 genes and the top 1000 genes for the current column
   share_trees <- centre_1000[centre_1000 %in% top_1000_trees]
   
   # Find the positions of the shared genes in the PCA results
-  sharetree_indices <- which(rownames(pca_res$x) %in% share_trees)
+  sharetree_indices <- which(rownames(nmds2$points) %in% share_trees)
   
   # Calculate the number of shared genes to display in the top right corner
   occup <- length(share_trees)
@@ -238,11 +267,11 @@ for (column in prop_negative_asc) {
   colors <- c("gold", "blue", "#FF0000")  # Colors for the plot
   
   # Create the plot and save it
-  current_plot <- ggplot(data = pca_res$x, aes(PC1, PC2)) +
-    geom_point(color = 'black', size = 1.0, alpha = 1.0) +
-    geom_point(data = pca_res$x[center_indices,], aes(PC1, PC2, color = labels[1]), size = 1.0, show.legend = TRUE) +
-    geom_point(data = pca_res$x[top1000_indices,], aes(PC1, PC2, color = labels[2]), size = 1.0, show.legend = TRUE) +
-    geom_point(data = pca_res$x[sharetree_indices,], aes(PC1, PC2, color = labels[3]), size = 1.0, show.legend = TRUE) +
+  current_plot <- ggplot(data = nmds2$points, aes(MDS1, MDS2)) +
+    geom_point(color = 'black', size = 1.5, alpha = 1.0) +
+    geom_point(data = nmds2$points[center_indices,], aes(MDS1, MDS2, color = labels[1]), size = 1.0, show.legend = TRUE) +
+    geom_point(data = nmds2$points[top1000_indices,], aes(MDS1, MDS2, color = labels[2]), size = 1.0, show.legend = TRUE) +
+    geom_point(data = nmds2$points[sharetree_indices,], aes(MDS1, MDS2, color = labels[3]), size = 1.0, show.legend = TRUE) +
     scale_color_manual(labels = labels, values = colors) +
     labs(color = " ") +
     theme(legend.position = "top",
@@ -253,8 +282,8 @@ for (column in prop_negative_asc) {
           axis.text = element_text(size = 18),  # Preserve the axis tick labels for small plots
           legend.text = element_text(size = 18),  # Adjust the font size of the legend text
           axis.title = element_text(size = 18)) + # Set the axis title size
-    xlab("PC1 (73.7%)") +
-    ylab("PC2 (3.2%)")  # Set the axis labels
+    xlab("NMDS1") +
+    ylab("NMDS2")  # Set the axis labels
   
   # Add the plot to the list
   plot_list[[i]] <- current_plot
@@ -284,13 +313,13 @@ output <- paste0(csv_dir,"ER_IM_1000.csv")
 #write.csv(name_median_1000, file = output)
 
 # Find the indices of these trees in the PCA results
-indices_median_1000 <- which(rownames(pca_res$x) %in% name_median_1000)
+indices_median_1000 <- which(rownames(nmds2$points) %in% name_median_1000)
 
 #find the shared trees
 share_trees <- centre_1000[centre_1000 %in% name_median_1000]
 
 # Extract indices of shared genes in the PCA analysis results
-sharetree_indices <- which(rownames(pca_res$x) %in% share_trees)
+sharetree_indices <- which(rownames(nmds2$points) %in% share_trees)
 
 # Number of shared genes to be displayed in the top right corner
 occup <- length(share_trees)
@@ -303,11 +332,11 @@ labels <- c("Center_1000",file_id, paste('Shared', occup, sep = "_" ))
 colors <- c("gold", "blue", "#FF0000")   ##E95146
 
 # Construct and save the plot
-current_plot <- ggplot(data = pca_res$x, aes(PC1, PC2)) +
-  geom_point(color = 'black',size = 1.0, alpha = 1.0) +
-  geom_point(data = pca_res$x[center_indices,], aes(PC1, PC2, color = labels[1]), size = 1.0, show.legend = TRUE) +
-  geom_point(data = pca_res$x[indices_median_1000,], aes(PC1, PC2, color = labels[2]), size = 1.0, show.legend = TRUE) +
-  geom_point(data = pca_res$x[sharetree_indices,], aes(PC1, PC2, color = labels[3]), size = 1.0, show.legend = TRUE) +
+current_plot <- ggplot(data = nmds2$points, aes(MDS1, MDS2)) +
+  geom_point(color = 'black',size = 1.5, alpha = 1.0) +
+  geom_point(data = nmds2$points[center_indices,], aes(MDS1, MDS2, color = labels[1]), size = 1.0, show.legend = TRUE) +
+  geom_point(data = nmds2$points[indices_median_1000,], aes(MDS1, MDS2, color = labels[2]), size = 1.0, show.legend = TRUE) +
+  geom_point(data = nmds2$points[sharetree_indices,], aes(MDS1, MDS2, color = labels[3]), size = 1.0, show.legend = TRUE) +
   #manually specify the colors and labels for the legend in a plot
   scale_color_manual(labels = labels,values = colors) +
   labs(color = " ") +
@@ -319,8 +348,8 @@ current_plot <- ggplot(data = pca_res$x, aes(PC1, PC2)) +
         axis.text = element_text(size = 18),  # Preserve the axis tick labels for small plots
         legend.text = element_text(size = 18),  # Adjust the font size of the legend text
         axis.title = element_text(size = 18)) + # Set the axis title size
-  xlab("PC1 (73.7%)") +
-  ylab("PC2 (3.2%)")  # Set the axis labels
+  xlab("NMDS1") +
+  ylab("NMDS2")  # Set the axis labels
 
 # Add the current plot to the list
 plot_list[[i]] <- current_plot
@@ -330,9 +359,9 @@ i <- i + 1
 combined_plot <- plot_grid(plotlist = plot_list, ncol = 3, align = "h")                                                                
 
 # Save the combined large plot
-output <- paste0(fig_dir,"occupation_1000.tiff")
-ggsave(output, plot = combined_plot, width = 25, height = 23, dpi = 300)
+output <- paste0(fig_dir,"occupation_1000_NMDS.tiff")
+ggsave(output, plot = combined_plot, width = 25, height = 38, dpi = 300)
 
 # Save the workspace to a file
-output <- paste0(Rdata_dir, "5_occupation_1000.RData") 
+output <- paste0(Rdata_dir, "5_occupation_1000_NMDS.RData") 
 save.image(file = output)
