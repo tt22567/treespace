@@ -1,4 +1,5 @@
-#Xiumei Lu and Joseph keating code
+#Joseph keating code for distance matrix
+#Xiumei Lu code for plotting
 
 #-------------------# 
 # CLEAN ENVIRONMENT #
@@ -107,7 +108,6 @@ res <- read.csv(paste0(csv_dir, "res_tree_distance_BMGE_Normolise_2063.csv"))
 #Be cautious with this step, as it may remove rows and columns unnecessarily
 #For instance, if multiple NAs are present for a single species, directly removing all rows or columns containing NAs could lead to data loss.
 #Therefore, it might be easier to remove them manually.
-#check whether there are absent value and infinite value
 any(is.na(res))
 any(is.infinite(res))
 which(is.na(res), arr.ind = TRUE)
@@ -121,40 +121,50 @@ output <- paste0(csv_dir, "res_tree_distance_BMGE_Normolise_2063_NONA_2062.csv")
 #write.csv(res2,file = output)
 
 #-------------------------------#
-# #       PCA analysis        # #
+# #       NMDS analysis       # #
 #-------------------------------#
 
 #read the distance matrix
 input <- paste0(csv_dir, "res_tree_distance_BMGE_Normolise_2063_NONA_2062.csv")
 res <- read.csv( file = input, row.names = 1)
 
-#PCA analysis for dimension reduction
-pca_res <- prcomp(res) 
+#distance matrix
+dist.matrix<- res
 
-#get a summary of the PCA results
-sum_res <- summary(pca_res)
-attributes(sum_res)
+#calculate nmds
+nmds2 <- vegan::metaMDS(dist.matrix, k = 2, trymax = 100)
+nmds2$points
+#pca_res$x → nmds2$points
 
-# Print rows of 'importance'
-rownames(sum_res$importance)
-# First row: SD
-# Second row: Prop. of variance
-# Third row: Cum. prop.
-# Print columns
-colnames(sum_res$importance)
-# Show the information for the first 5 PCs
-sum_res$importance[,1:5]
-#look at the proportion of variance explained by each of the PC's
-sum_res$importance[2,]
-#by the first two PC's
-sum_res$importance[2,1:2]
+#check whether the rank is the same
+head(row.names(res))
+nmds2$points[1:5,]
 
-#check scores 
-pca_res$x[1:5, 1:5]
-#save the first two PCs
-PCs <- pca_res$x[, 1:2]
-#write.csv(PCs,file="pc1_pc2.csv")
+#get data
+data = data.frame(nmds2$points)
+data$group = row.names(dist.matrix)
+
+# To plot "outside box", do not send `ggplot` to an object
+grDevices::windows()
+
+#plot(data)
+plot <- ggplot(data, aes(x = MDS1, y = MDS2)) +
+  geom_point(size = 1.0) +
+  theme_grey() +
+  #theme_light() +  # light background, with line
+  #theme_classic() + #no background line
+  #geom_text(                
+  #aes(label = rownames(data)),
+  #vjust = 1.5,
+  #size = 2,
+  #color = "black"
+  #) +
+  labs(                     # add stress
+    subtitle = paste("Stress =", round(nmds2$stress, 3))
+  )
+
+plot
 
 # Save the workspace to a file
-output <- paste0(Rdata_dir, "15_TreeDistance_2062.RData")
+output <- paste0(Rdata_dir, "15_TreeDistance_2062_NMDS.RData")
 save.image(file = output)
