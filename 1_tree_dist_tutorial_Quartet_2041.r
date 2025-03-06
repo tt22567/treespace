@@ -1,4 +1,5 @@
-#Xiumei Lu and Joseph keating code
+#Joseph keating code for distance matrix
+#Xiumei Lu code for plotting
 
 #-------------------# 
 # CLEAN ENVIRONMENT #
@@ -111,7 +112,6 @@ output <- paste0(csv_dir, "res_tree_distance_BMGE_Normolise_2048.csv")
 #Be cautious with this step, as it may remove rows and columns unnecessarily
 #For instance, if multiple NAs are present for a single species, directly removing all rows or columns containing NAs could lead to data loss.
 #Therefore, it might be easier to remove them manually.
-#check whether there are absent value and infinite value
 any(is.na(res))
 any(is.infinite(res))
 which(is.na(res), arr.ind = TRUE)
@@ -122,63 +122,86 @@ res2 <- res[-which(is.na(res), arr.ind = T)[,1],]  #remove rows
 
 #save
 output <- paste0(csv_dir, "res_tree_distance_BMGE_Normalise_noNA_2041.csv")
-#write.csv(res2,file = output)
+write.csv(res2,file = output)
+
 
 #-------------------------------#
-# #       PCA analysis        # #
+# #       stress analysis     # #
 #-------------------------------#
 
 #read the distance matrix
 input <- paste0(csv_dir, "res_tree_distance_BMGE_Normalise_noNA_2041.csv")
-#res <- read.csv( file = input, row.names = 1)
+res <- read.csv( file = input, row.names = 1)
 
-#PCA analysis for dimension reduction
-pca_res <- prcomp(res) 
+dist.matrix<- res
 
-#get a summary of the PCA results
-sum_res <- summary(pca_res)
-attributes(sum_res)
+#calculate nmds based on distance matrix
+#Get stress values for NMDS plots with axes 1:10
+#check the stress, a measure used to evaluate how match between discrete matrix and distance matrix:
+#less than 0.1, good; between 0.1-0.2 acceptable; more than 0.2, not good.
+stress.values <- sapply(1:10, function(k) {
+  tryCatch({
+    vegan::metaMDS(dist.matrix, k = k, trymax = 100)$stress
+  }, error = function(e) {
+    NA
+  })
+})
 
-# Print rows of 'importance'
-rownames(sum_res$importance)
-# First row: SD
-# Second row: Prop. of variance
-# Third row: Cum. prop.
-# Print columns
-colnames(sum_res$importance)
-# Show the information for the first 5 PCs
-sum_res$importance[,1:5]
-#look at the proportion of variance explained by each of the PC's
-sum_res$importance[2,]
-#by the first two PC's
-sum_res$importance[2,1:2]
-
-#check scores 
-pca_res$x[1:5, 1:5]
-#save the first two PCs
-PCs <- pca_res$x[, 1:2]
-#write.csv(PCs,file="pc1_pc2.csv")
+# tiff
+tiff("NMDS_stress.tiff", width = 6, height = 5, units = "in", res = 300)
+barplot(stress.values, names.arg = 1:10, ylim = c(0, max(stress.values, na.rm = TRUE)), 
+        ylab = "Stress", xlab = "Dimensions", col = "grey", main = "Stress vs. NMDS Dimensions")
+dev.off()  
 
 #-------------------------------#
-# #       PCA visialize       # #
+# #       NMDS analysis       # #
 #-------------------------------#
+
+#read the distance matrix
+input <- paste0(csv_dir, "res_tree_distance_BMGE_Normalise_noNA_2041.csv")
+res <- read.csv( file = input, row.names = 1)
+
+#distance matrix
+dist.matrix<- res
+
+#calculate nmds
+nmds2 <- vegan::metaMDS(dist.matrix, k = 2, trymax = 100)
+nmds2$points
+#pca_res$x → nmds2$points
+
+#check whether the rank is the same
+head(row.names(res))
+nmds2$points[1:5,]
+
+#get data
+data = data.frame(nmds2$points)
+data$group = row.names(dist.matrix)
 
 # To plot "outside box", do not send `ggplot` to an object
 grDevices::windows()
 
-# To save the output of ggplot in an object, run below
-plot <- ggplot(pca_res$x, aes(PC1, PC2)) +
-  geom_point(color = "black", size = 1.0, alpha = 1.0) +
-  theme_gray() +  # This sets the default grey theme
-  xlab("PC1 (73.7%)") +
-  ylab("PC2 (3.2%)")
+#plot(data)
+plot <- ggplot(data, aes(x = MDS1, y = MDS2)) +
+  geom_point(size = 1.0) +
+  theme_grey() +
+  #theme_light() +  # light background, with line
+  #theme_classic() + #no background line
+  #geom_text(                
+    #aes(label = rownames(data)),
+    #vjust = 1.5,
+    #size = 2,
+    #color = "black"
+  #) +
+  labs(                     # add stress
+    subtitle = paste("Stress =", round(nmds2$stress, 3))
+  )
 
 plot
 
 # save plot
-output <- paste0(fig_dir, "plot.tiff") 
-#ggsave(output, plot, width = 6, height = 4, dpi = 300)
+output <- paste0(fig_dir, "NMDS.tiff") 
+ggsave(output, plot, width = 5.5, height = 5, dpi = 300)
 
 # Save the workspace to a file
-output <- paste0(Rdata_dir, "1_TreeDistance.RData")
+output <- paste0(Rdata_dir, "1_TreeDistance_NMDS.RData")
 save.image(file = output)
