@@ -55,7 +55,7 @@ Rdata_dir <- gsub( pattern = "Scripts",
 #--------------------------------#
 
 #load distance matrix
-input <- paste0(Rdata_dir,'1_TreeDistance.Rdata')
+input <- paste0(Rdata_dir,'1_TreeDistance_NMDS.Rdata')
 load(input)
 
 #distance matrix
@@ -63,8 +63,8 @@ res
 length(rownames(res))
 head(rownames(res))
 
-#PCA analysis result for dimension reduction
-pca_res
+#NMDS analysis result for dimension reduction
+nmds2
 
 # read property matrix
 properties <- read.csv("properties_final_2041.csv", header = TRUE, row.names = 'rownames.tree')
@@ -98,30 +98,38 @@ for (target_col in prop_positive_desc) {
     genes_fully <- rownames(properties)[top_indices]
     
     # Get genes fully indices
-    genes_fully_indices <- which(rownames(pca_res$x) %in% genes_fully)
+    genes_fully_indices <- which(rownames(nmds2$points) %in% genes_fully)
     
     # Generate labels for the current group
     max_label <- paste("MAX_", max_value)
     
     # Generate a dataframe with markers
-    plot_df <- data.frame(PC1 = pca_res$x[genes_fully_indices, 1],
-                          PC2 = pca_res$x[genes_fully_indices, 2],
+    plot_df <- data.frame(MDS1 = nmds2$points[genes_fully_indices, 1],
+                          MDS2 = nmds2$points[genes_fully_indices, 2],
                           Group = factor(max_label, levels = max_label))
     
     # Create current plot
-    current_plot <- ggplot(data = pca_res$x, aes(PC1, PC2)) +
+    current_plot <- ggplot(data = nmds2$points, aes(MDS1, MDS2)) +
       geom_point(size = 1.0, alpha = 1.0) +
-      geom_point(data = plot_df, aes(PC1, PC2, color = Group), size = 1.0) +
+      geom_point(data = plot_df, aes(MDS1, MDS2, color = Group), size = 1.0) +
       scale_color_manual(values = "blue", labels = max_label) +
       labs(color = target_col) +
       theme(legend.position = "top",
-            plot.title = element_text(size = 15),
-            axis.text = element_text(size = 15),  # Preserve axis tick labels for small plots
-            legend.text = element_text(size = 15),  # Adjust the font size of the legend text
-            legend.title = element_text(size = 15),  # Adjust the font size of the legend title
-            axis.title = element_text(size = 15)) +   # Set axis title size
-      xlab("PC1 (73.7%)") +
-      ylab("PC2 (3.2%)")   # Set axis labels
+            plot.title = element_text(size = 20),
+            axis.text = element_text(size = 20),  # Preserve axis tick labels for small plots
+            legend.text = element_text(size = 20),  # Adjust the font size of the legend text
+            legend.title = element_text(size = 20),  # Adjust the font size of the legend title
+            axis.title = element_text(size = 20)) +   # Set axis title size
+      xlab("NMDS1") +
+      ylab("NMDS2")+   # Set axis labels
+      annotate("text", 
+               x = max(nmds2$points[,1]), 
+               y = min(nmds2$points[,2]), 
+               label = LETTERS[plot_index], 
+               size = 8, 
+               fontface = "plain", # bold
+               hjust = 1, 
+               vjust = 0)
     
     # Add the current plot to the list
     plots_list[[plot_index]] <- current_plot
@@ -134,8 +142,8 @@ for (target_col in prop_positive_desc) {
   combined_plot <- plot_grid(plotlist = plots_list, ncol = 3, align = "h")
   
   # Save the combined large plot
-  output = paste0(fig_dir, target_col, "_why1000.tiff")
-  ggsave(plot = combined_plot, filename = output, width = 18, height = 9, units = "in", dpi = 300)
+  output = paste0(fig_dir, target_col, "_why1000_NMDS.tiff")
+  ggsave(plot = combined_plot, filename = output, width = 18, height = 15, units = "in", dpi = 300)
 }
 
 
@@ -161,30 +169,38 @@ for (target_col in prop_negative_asc) {
     genes_fully <- rownames(properties)[top_indices]
     
     # Get genes fully indices
-    genes_fully_indices <- which(rownames(pca_res$x) %in% genes_fully)
+    genes_fully_indices <- which(rownames(nmds2$points) %in% genes_fully)
     
     # Generate labels for the current group
     max_label <- paste("MIN_", max_value)
     
     # Generate a dataframe with markers
-    plot_df <- data.frame(PC1 = pca_res$x[genes_fully_indices, 1],
-                          PC2 = pca_res$x[genes_fully_indices, 2],
+    plot_df <- data.frame(MDS1 = nmds2$points[genes_fully_indices, 1],
+                          MDS2 = nmds2$points[genes_fully_indices, 2],
                           Group = factor(max_label, levels = max_label))
     
     # Create current plot
-    current_plot <- ggplot(data = pca_res$x, aes(PC1, PC2)) +
+    current_plot <- ggplot(data = nmds2$points, aes(MDS1, MDS2)) +
       geom_point(size = 1.0, alpha = 1.0) +
-      geom_point(data = plot_df, aes(PC1, PC2, color = Group), size = 1.0) +
+      geom_point(data = plot_df, aes(MDS1, MDS2, color = Group), size = 1.0) +
       scale_color_manual(values = "blue", labels = max_label) +
       labs(color = target_col) +
       theme(legend.position = "top",
-            plot.title = element_text(size = 15),
-            axis.text = element_text(size = 15),  # Preserve axis tick labels for small plots
-            legend.text = element_text(size = 15),  # Adjust the font size of the legend text
-            legend.title = element_text(size = 15),  # Adjust the font size of the legend title
-            axis.title = element_text(size = 15)) +   # Set axis title size
-      xlab("PC1 (73.7%)") +
-      ylab("PC2 (3.2%)")   # Set axis labels
+            plot.title = element_text(size = 20),
+            axis.text = element_text(size = 20),  # Preserve axis tick labels for small plots
+            legend.text = element_text(size = 20),  # Adjust the font size of the legend text
+            legend.title = element_text(size = 20),  # Adjust the font size of the legend title
+            axis.title = element_text(size = 20)) +   # Set axis title size
+      xlab("NMDS1") +
+      ylab("NMDS2") +   # Set axis labels
+      annotate("text", 
+               x = max(nmds2$points[,1]), 
+               y = min(nmds2$points[,2]), 
+               label = LETTERS[plot_index], 
+               size = 8, 
+               fontface = "plain", # bold
+               hjust = 1, 
+               vjust = 0)
     
     # Add the current plot to the list
     plots_list[[plot_index]] <- current_plot
@@ -197,6 +213,6 @@ for (target_col in prop_negative_asc) {
   combined_plot <- plot_grid(plotlist = plots_list, ncol = 3, align = "h")
   
   # Save the combined large plot
-  output = paste0(fig_dir, target_col, "_why1000.tiff")
-  ggsave(plot = combined_plot, filename = output, width = 18, height = 9, units = "in", dpi = 300)
+  output = paste0(fig_dir, target_col, "_why1000_NMDS.tiff")
+  ggsave(plot = combined_plot, filename = output, width = 18, height = 15, units = "in", dpi = 300)
 }
