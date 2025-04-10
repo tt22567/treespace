@@ -119,7 +119,7 @@ properties4$outlier <- ifelse(1:nrow(properties4) %in% outliers, 'red', 'black')
 grDevices::windows()
 
 # Plot PCA scores with outliers highlighted
-plot <- ggplot(properties4, aes(x = PC1, y = PC2)) +
+plot <- ggplot(properties4, aes(x = PC_1, y = PC_2)) +
   geom_point(alpha = 0.3, aes(color = outlier), shape = 16, size = 3) + theme_bw() +
   scale_color_manual(values = c('#BFD3E6', '#E93658')) + theme(legend.position = "none")+
   theme(aspect.ratio = 1)+
